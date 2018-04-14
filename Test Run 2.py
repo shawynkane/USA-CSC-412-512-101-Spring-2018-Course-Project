@@ -125,14 +125,14 @@ def syncLegs(BP):
     # Trun Left until Touch Sensor pressed
     BP.set_motor_power(Left, power)
     while BP.get_sensor(MotorTS) == 0:
-        print("left 1") 
+        pass
     BP.set_motor_power(Left, 0)
 	
     # Turn Left until Touch Sensor released
     BP.set_motor_power(Left, power)
     while BP.get_sensor(MotorTS) == 1:
-        print("left 2")
-    BP.set_motor_power(Left, 0)    
+        pass
+    BP.set_motor_power(Left, 0)
     
 def main():
     print("Hello, Brick Pi!")
@@ -151,13 +151,14 @@ def main():
     #print(BP.get_motor_encoder(Right))
     print()
     
-    BP.set_motor_power(Left + Right, -50)
-    time.sleep(5)
-    BP.set_motor_power(Left + Right, 0)
+    #BP.set_motor_power(Left + Right, -50)
+
+    #time.sleep(5)
+    #BP.set_motor_power(Left + Right, 0)
     
     #print(BP.get_motor_encoder(Left))
     #testSensors(BP)
-    #syncLegs(BP)
+    syncLegs(BP)
     print("Final Total Degrees Left Motor has Turned: " + str(BP.get_motor_encoder(Left)))
     print("Final Total Degrees Right Motor has Turned: " + str(BP.get_motor_encoder(Right)))
     #BP.set_motor_position(Right, 180)
