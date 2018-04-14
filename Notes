@@ -1,0 +1,33 @@
+Test how far away the ultrasonic sensor can detect an object
+Check that the RGB sensor is still detecting colors correctly
+
+
+
+USEFUL FUNCTIONS
+get_motor_encoder(self, port)
+get_sensor(self, port)
+offset_motor_encoder(self, port, position)
+set_motor_pds(self, port, dps)
+set_motor_power(self, port, power)
+get_sensor(self, port)
+
+
+
+if syncing of legs doesnt work with touch sensor, try just moving each leg by a number of degrees in turns.
+
+
+
+standard dps =
+standard power =
+adjust dps by 10? to get back on blue
+If adjusting the dps doesn't fix it, try adjusting power
+
+while US sensor detects nothing (no obstacles)
+	if RGB sensor detects blue
+		go forward
+	else if RGB sensor detects red (too far left)
+		adjust to the right
+		increase dps of right motor
+	else if RGB detects green (too far right)
+		adjust to the left
+		increase dps of left motor
