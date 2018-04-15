@@ -22,52 +22,130 @@
 import time
 import brickpi3
 
-Left = brickpi3.BrickPi3.PORT_D
-Right = brickpi3.BrickPi3.PORT_A
-MotorTS = brickpi3.BrickPi3.PORT_1
-US = brickpi3.BrickPi3.PORT_2
-RBGColor = brickpi3.BrickPi3.PORT_3
+Left = brickpi3.BrickPi3.PORT_D # port for left motor
+Right = brickpi3.BrickPi3.PORT_A # port for right motor
+MotorTS = brickpi3.BrickPi3.PORT_1 # port for the touch sensor for the motors
+US = brickpi3.BrickPi3.PORT_2 # port for the ultrasonic sensor
+RBGColor = brickpi3.BrickPi3.PORT_3 # port for the red, blue, green color sensor
 
-def moveSeconds(BP, secs, power): # power is the percentage of power that the motor runs at
+# 'BP' is the instance of the brick pi
+# 'secs' is the number of seconds to run the motors
+# 'power' is the percentage of power that the motor runs at. (-100 to 100)
+# A negative power percent makes the motor run backwards. A positive power percent makes the motor run forward.
+def moveSeconds(BP, secs, power):
     BP.set_motor_power(Left + Right, power)
     time.sleep(secs)
     BP.set_motor_power(Left + Right, 0)
     return
 
+# 'BP' is the instance of the brick pi
+# 'degrees' should be positive.
+# 'power' is the percentage of power that the motor runs at. (-100 to 100)
+# A negative power percent makes the motor run backwards. A positive power percent makes the motor run forward.
 def moveDegrees(BP, degrees, power):
     if power == 0:
         BP.set_motor_power(Left + Right, 0)
+        return
     rightInitialDegrees = BP.get_motor_encoder(Right)
     leftInitialDegrees = BP.get_motor_encoder(Left)
     rightStopped = False
     leftStopped = False
-    if power > 0: # when a motor rotates forward it adds degrees to the encoder
+    if power > 0: # move forwards # when a motor rotates forward it adds degrees to the encoder
+        rightDegreeToTurnTo = rightInitialDegrees + degrees
+        leftDegreeToTurnTo = leftInitialDegrees + degrees
         BP.set_motor_power(Left + Right, power)
         while ((not rightStopped) and (not leftStopped)):
-            if (abs(BP.get_motor_encoder(Right)-rightInitialDegrees) >= degrees):
+            if (BP.get_motor_encoder(Right) >= rightDegreeToTurnTo):
                 BP.set_motor_power(Right, 0)
                 rightStopped = True
-            if (abs(BP.get_motor_encoder(Left)-leftInitialDegrees) >= degrees):
+            if (BP.get_motor_encoder(Left) >= leftDegreeToTurnTo):
                 BP.set_motor_power(Left, 0)
                 leftStopped = True
-    else: # when a motor rotates backwards it subtracts degrees from the encoder
+    else: # move backwards # when a motor rotates backwards it subtracts degrees from the encoder
+        rightDegreeToTurnTo = rightInitialDegrees - degrees
+        leftDegreeToTurnTo = leftInitialDegrees - degrees
         BP.set_motor_power(Left + Right, power)
         while ((not rightStopped) and (not leftStopped)):
-            if (abs(rightInitialDegrees-BP.get_motor_encoder(Right)) >= degrees):
+            if (BP.get_motor_encoder(Right) <= rightDegreeToTurnTo):
                 BP.set_motor_power(Right, 0)
                 rightStopped = True
-            if (abs(leftInitialDegrees-BP.get_motor_encoder(Left)) >= degrees):
+            if (BP.get_motor_encoder(Left) <= leftDegreeToTurnTo):
                 BP.set_motor_power(Left, 0)
                 leftStopped = True
+    return
 
-def turn(BP, motorOn, motorOff):
+# 'BP' is the instance of the brick pi
+# 'motorOn' is the motor that will move or run
+# 'motorOff' is the motor that will not move or run
+# 'degrees' should be positive.
+# 'power' is the percentage of power that the motor runs at. (-100 to 100)
+# A negative power percent makes the motor run backwards. A positive power percent makes the motor run forward.
+def turnOneMotor(BP, motorOn, motorOff, degrees, power):
+    if power == 0: # stop
+        BP.set_motor_power(motorOff + motorOn, 0)
+        return
     BP.set_motor_power(motorOff + motorOn, 0)
     initialDegrees = BP.get_motor_encoder(motorOn)
-    degreeTurn = 15 #This may need to be higher or lower depending on how much this turns the bot
-    
-    while (BP.get_motor_encoder(motorOn) <= degreeTurn + initialDegree) 
-	BP.set_motor_power(motorOn, 50) #The power may need to be higher or lower upon testing this
-	
+
+    if power > 0: # turn forward
+        degreeToTurnTo = initialDegrees + degrees
+        BP.set_motor_power(motorOn, power)
+        while (BP.get_motor_encoder(motorOn) <= degreeToTurnTo):
+            pass
+        BP.set_motor_power(motorOn, 0)
+    else: # turn backwards
+        degreeToTurnTo = initialDegree - degrees
+        BP.set_motor_power(motorOn, power)
+        while (BP.get_motor_encoder(motorOn) >= degreeToTurnTo):
+            pass
+        BP.set_motor_power(motorOn, 0)
+    return
+
+# 'BP' is the instance of the brick pi
+# 'turnLeft' is a boolean indicating true to turn left and false to turn right
+# 'degrees' should be positive.
+# To go backwards make 'power' a negative number.
+# A negative power percent makes the motor run backwards. A positive power percent makes the motor run forward.
+def turnBothMotors(BP, turnLeft, degrees, power): #### THE ROBOT IS HANGING UP SOMEWHERE IN THIS FUNCTION. #### THE ROBOT STOPS AND DOES NOTHING AND THE PROGRAM DOES NOT GO PAST THE FUNCTION CALL TO THIS FUNCTION.
+    forward = Right
+    reverse = Left
+    if turnLeft:
+        forward = Left
+        reverse = Right
+    if power == 0: # stop
+        BP.set_motor_power(reverse + forward, 0)
+        return
+    BP.set_motor_power(reverse + forward, 0)
+    forwardInitialDegrees = BP.get_motor_encoder(forward)
+    reverseInitialDegrees = BP.get_motor_encoder(reverse)
+    if power > 0: # turn forward
+        forwardDegreeToTurnTo = forwardInitialDegrees + degrees
+        reverseDegreeToTurnTo = reverseInitialDegrees - degrees
+        forwardStopped = False
+        reverseStopped = False
+        BP.set_motor_power(forward, power)
+        BP.set_motor_power(reverse, -power)
+        while ((not forwardStopped) and (not reverseStopped)):
+            if (BP.get_motor_encoder(forward) <= forwardDegreeToTurnTo):
+                BP.set_motor_power(forward, 0)
+                forwardStopped = True
+            if (BP.get_motor_encoder(reverse) >= reverseDegreeToTurnTo):
+                BP.set_motor_power(reverse, 0)
+                reverseStopped = True
+    else: # turn backwards
+        forwardDegreeToTurnTo = forwardInitialDegree - degrees
+        reverseDegreeTOTurnTo = reverseInitialDegree + degrees
+        forwardStopped = False
+        reverseStopped = False
+        BP.set_motor_power(forward, power)
+        BP.set_motor_power(reverse, -power)
+        while ((not forwardStopped) and (not reverseStopped)):
+            if (BP.get_motor_encoder(forward) >= forwardDegreeToTurnTo):
+                BP.set_motor_power(forward, 0)
+                forwardStopped = True
+            if (BP.get_motor_encoder(reverse) <= reverseDegreeToTurnTo):
+                BP.set_motor_power(reverse, 0)
+                reverseStopped = True
     return
 
 def testSensors(BP):
@@ -125,9 +203,6 @@ def syncLegs(BP):
     while ((BP.get_motor_encoder(Right)-rightInitialDegrees)<180):
         pass
     BP.set_motor_power(Right, 0)
-    print("Degrees Turned: " + str(BP.get_motor_encoder(Right)-rightInitialDegrees))
-
-    # This function is hanging up after this point, may be due to low batteries.
     
     # Trun Left until Touch Sensor pressed
     BP.set_motor_power(Left, power)
@@ -166,6 +241,14 @@ def main():
     #print(BP.get_motor_encoder(Left))
     #testSensors(BP)
     syncLegs(BP)
+    power = 50
+    degrees = 360*3
+    
+    #moveDegrees(BP, degrees, power)
+    #turnOneMotor(BP, Left, Right, degrees, power)
+    
+    turnBothMotors(BP, True, degrees, power)#### THE ROBOT IS HANGING UP SOMEWHERE IN THIS FUNCTION. #### THE ROBOT STOPS AND DOES NOTHING AND THE PROGRAM DOES NOT GO PAST THE FUNCTION CALL TO THIS FUNCTION.
+    
     print("Final Total Degrees Left Motor has Turned: " + str(BP.get_motor_encoder(Left)))
     print("Final Total Degrees Right Motor has Turned: " + str(BP.get_motor_encoder(Right)))
     #BP.set_motor_position(Right, 180)
