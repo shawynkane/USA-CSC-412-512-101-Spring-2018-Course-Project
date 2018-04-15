@@ -60,7 +60,14 @@ def moveDegrees(BP, degrees, power):
                 BP.set_motor_power(Left, 0)
                 leftStopped = True
 
-def turn(BP, left):
+def turn(BP, motorOn, motorOff):
+    BP.set_motor_power(motorOff + motorOn, 0)
+    initialDegrees = BP.get_motor_encoder(motorOn)
+    degreeTurn = 15 #This may need to be higher or lower depending on how much this turns the bot
+    
+    while (BP.get_motor_encoder(motorOn) <= degreeTurn + initialDegree) 
+	BP.set_motor_power(motorOn, 50) #The power may need to be higher or lower upon testing this
+	
     return
 
 def testSensors(BP):
