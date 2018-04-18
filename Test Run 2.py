@@ -106,7 +106,7 @@ def turnOneMotor(BP, motorOn, motorOff, degrees, power):
 # 'degrees' should be positive.
 # To go backwards make 'power' a negative number.
 # A negative power percent makes the motor run backwards. A positive power percent makes the motor run forward.
-def turnBothMotors(BP, turnLeft, degrees, power): #### THE ROBOT IS HANGING UP SOMEWHERE IN THIS FUNCTION. #### THE ROBOT STOPS AND DOES NOTHING AND THE PROGRAM DOES NOT GO PAST THE FUNCTION CALL TO THIS FUNCTION.
+def turnBothMotors(BP, turnLeft, degrees, power):
     forward = Right
     reverse = Left
     if turnLeft:
@@ -119,20 +119,35 @@ def turnBothMotors(BP, turnLeft, degrees, power): #### THE ROBOT IS HANGING UP S
     forwardInitialDegrees = BP.get_motor_encoder(forward)
     reverseInitialDegrees = BP.get_motor_encoder(reverse)
     if power > 0: # turn forward
+        print("turn forward")
         forwardDegreeToTurnTo = forwardInitialDegrees + degrees
         reverseDegreeToTurnTo = reverseInitialDegrees - degrees
         forwardStopped = False
         reverseStopped = False
+        print("power = " + str(power))
         BP.set_motor_power(forward, power)
         BP.set_motor_power(reverse, -power)
+        print("BP.get_motor_encoder(forward) = " + str(BP.get_motor_encoder(forward)))
+        print("forwardDegreeToTurnTo = " + str(forwardDegreeToTurnTo))
+        print("BP.get_motor_encoder(reverse) = " + str(BP.get_motor_encoder(reverse)))
+        print("reverseDegreeToTurnTo = " + str(reverseDegreeToTurnTo))
         while ((not forwardStopped) and (not reverseStopped)):
-            if (BP.get_motor_encoder(forward) <= forwardDegreeToTurnTo):
+            print("forwardStopped = " + str(forwardStopped))
+            print("reverseStopped = " + str(reverseStopped))
+            print("BP.get_motor_encoder(forward) = " + str(BP.get_motor_encoder(forward)))
+            print("forwardDegreeToTurnTo = " + str(forwardDegreeToTurnTo))
+            print("BP.get_motor_encoder(reverse) = " + str(BP.get_motor_encoder(reverse)))
+            print("reverseDegreeToTurnTo = " + str(reverseDegreeToTurnTo))
+            if (BP.get_motor_encoder(forward) >= forwardDegreeToTurnTo):
                 BP.set_motor_power(forward, 0)
                 forwardStopped = True
-            if (BP.get_motor_encoder(reverse) >= reverseDegreeToTurnTo):
+            if (BP.get_motor_encoder(reverse) <= reverseDegreeToTurnTo):
                 BP.set_motor_power(reverse, 0)
                 reverseStopped = True
+            print("forwardStopped = " + str(forwardStopped))
+            print("reverseStopped = " + str(reverseStopped))
     else: # turn backwards
+        print("turn backward")
         forwardDegreeToTurnTo = forwardInitialDegree - degrees
         reverseDegreeTOTurnTo = reverseInitialDegree + degrees
         forwardStopped = False
@@ -146,11 +161,12 @@ def turnBothMotors(BP, turnLeft, degrees, power): #### THE ROBOT IS HANGING UP S
             if (BP.get_motor_encoder(reverse) <= reverseDegreeToTurnTo):
                 BP.set_motor_power(reverse, 0)
                 reverseStopped = True
+    print("return")
     return
 
 def testSensors(BP):
-    for i in range(5):
-        time.sleep(5)
+    while True:
+        time.sleep(1)
         try:
             value = BP.get_sensor(RBGColor)
             print("RBGColor Sensor = " + str(value))
@@ -239,15 +255,15 @@ def main():
     #BP.set_motor_power(Left + Right, 0)
     
     #print(BP.get_motor_encoder(Left))
-    #testSensors(BP)
-    syncLegs(BP)
-    power = 50
-    degrees = 360*3
+    testSensors(BP)
+    #syncLegs(BP)
+    #power = 50
+    #degrees = 360*3
     
     #moveDegrees(BP, degrees, power)
     #turnOneMotor(BP, Left, Right, degrees, power)
     
-    turnBothMotors(BP, True, degrees, power)#### THE ROBOT IS HANGING UP SOMEWHERE IN THIS FUNCTION. #### THE ROBOT STOPS AND DOES NOTHING AND THE PROGRAM DOES NOT GO PAST THE FUNCTION CALL TO THIS FUNCTION.
+    #turnBothMotors(BP, True, degrees, 50)
     
     print("Final Total Degrees Left Motor has Turned: " + str(BP.get_motor_encoder(Left)))
     print("Final Total Degrees Right Motor has Turned: " + str(BP.get_motor_encoder(Right)))
