@@ -81,61 +81,58 @@ def moveDegrees(BP, degrees, power):
 
 # 'BP' is the instance of the brick pi
 # 'degrees' should be positive.
-# 'power' is the percentage of power that the motor runs at. (-100 to 100)
-# A negative power percent makes the motor run backwards. A positive power percent makes the motor run forward.
+# 'power' is the percentage of power that the motor runs at. This function only takes a positive number for power. In other words it only moves forward, because it cannot detect obojects with the ultrasonic sensor while going backwards.
+# syncs legs at the beginning of the function
 def moveDegreesAlongPath(BP, degrees, power, routeColor):
-    if power == 0:
+    syncLegs(BP)
+    if power <= 0:
         BP.set_motor_power(Left + Right, 0)
         return 0
     rightInitialDegrees = BP.get_motor_encoder(Right)
     leftInitialDegrees = BP.get_motor_encoder(Left)
     rightStopped = False
     leftStopped = False
-    if power > 0: # move forwards # when a motor rotates forward it adds degrees to the encoder
-        rightDegreeToTurnTo = rightInitialDegrees + degrees
-        leftDegreeToTurnTo = leftInitialDegrees + degrees
-        BP.set_motor_power(Left + Right, power)
-        while ((not rightStopped) and (not leftStopped)):
-            if (BP.get_motor_encoder(Right) >= rightDegreeToTurnTo):
-                BP.set_motor_power(Right, 0)
-                rightStopped = True
-            if (BP.get_motor_encoder(Left) >= leftDegreeToTurnTo):
-                BP.set_motor_power(Left, 0)
-                leftStopped = True
-            repeat = True
-            count = 0
-            numberOfChecks = 3
-            while repeat:
-                count = count + 1
-                repeat = False
-                sensorData = BP.get_sensor(RBGColor)
-                print("BP.get_sensor(RBGColor) = " + str(sensorData))
-                checkColor = sensorData[0]
-                
-                if checkColor != routeColor:
-                    if checkColor == RED:
-                        BP.set_motor_power(Right, power+20)
-                    elif checkColor == BLUE:
-                        BP.set_motor_power(Left, power+20)
-                    else:
-                        if count >= 3:
-                            return 1
-                        repeat = True
-                        time.sleep(1.5)
-                else:
-                    BP.set_motor_power(Left + Right, power)
+    rightDegreeToTurnTo = rightInitialDegrees + degrees
+    leftDegreeToTurnTo = leftInitialDegrees + degrees
+    BP.set_motor_power(Left + Right, power)
+    while ((not rightStopped) and (not leftStopped)):
+        if (BP.get_motor_encoder(Right) >= rightDegreeToTurnTo):
+            BP.set_motor_power(Right, 0)
+            rightStopped = True
+        if (BP.get_motor_encoder(Left) >= leftDegreeToTurnTo):
+            BP.set_motor_power(Left, 0)
+            leftStopped = True
+        repeat = True
+        count = 0
+        numberOfChecks = 3
+        colors = []
+        while repeat:
+            count = count + 1
+            repeat = False
+            sensorData = BP.get_sensor(RBGColor)
+            USSensorData = BP.get_sensor(US)
+            if USSensorData <= 12.5:
+                BP.set_motor_power(Left + Right, 0)
+                return -3
+            print(str(sensorData))
+            checkColor = sensorData[0]
             
-    else: # move backwards # when a motor rotates backwards it subtracts degrees from the encoder
-        rightDegreeToTurnTo = rightInitialDegrees - degrees
-        leftDegreeToTurnTo = leftInitialDegrees - degrees
-        BP.set_motor_power(Left + Right, power)
-        while ((not rightStopped) and (not leftStopped)):
-            if (BP.get_motor_encoder(Right) <= rightDegreeToTurnTo):
-                BP.set_motor_power(Right, 0)
-                rightStopped = True
-            if (BP.get_motor_encoder(Left) <= leftDegreeToTurnTo):
-                BP.set_motor_power(Left, 0)
-                leftStopped = True
+            if checkColor != routeColor:
+                if checkColor == RED:
+                    BP.set_motor_power(Left, power+20)
+                elif checkColor == BLUE:
+                    BP.set_motor_power(Right, power+20)
+                else:
+                    colors.append(checkColor)
+                    if count >= 3:
+                        if sum(colors) == 3:
+                            return 1
+                        else:
+                            return -1
+                    repeat = True
+                    time.sleep(1)
+            else:
+                BP.set_motor_power(Left + Right, power)
     return 0
 
 # 'BP' is the instance of the brick pi
@@ -304,37 +301,17 @@ def main():
         BP.set_sensor_type(RBGColor, brickpi3.BrickPi3.SENSOR_TYPE.NXT_COLOR_FULL)
         BP.set_sensor_type(US, brickpi3.BrickPi3.SENSOR_TYPE.NXT_ULTRASONIC)
         time.sleep(1)
-        print("Initial Total Degrees Left Motor has Turned: " + str(BP.get_motor_encoder(Left)))
-        print("Initial Total Degrees Right Motor has Turned: " + str(BP.get_motor_encoder(Right)))
-        #BP.offset_motor_encoder(Left, BP.get_motor_encoder(Left))
-        #BP.offset_motor_encoder(Right, BP.get_motor_encoder(Right))
-        #print(BP.get_motor_encoder(Left))
-        #print(BP.get_motor_encoder(Right))
-        print()
-        
-        #BP.set_motor_power(Left + Right, -50)
 
-        #time.sleep(5)
-        #BP.set_motor_power(Left + Right, 0)
+##        for i in range(15):
+##            print("Standing Trial " + str(i) + ": " + str(BP.get_sensor(RBGColor)))
         
-        #print(BP.get_motor_encoder(Left))
         #testSensors(BP)
-        syncLegs(BP)
+        #syncLegs(BP)
         time.sleep(2)
         power = 30
-        degrees = 360*10
+        degrees = 360*15
         print("moveDegreesAlongPath(BP, degrees, power, GREEN) = " + str(moveDegreesAlongPath(BP, degrees, power, GREEN)))
-        #moveDegrees(BP, degrees, power)
-        #turnOneMotor(BP, Left, Right, degrees, power)
-        #moveDegrees(BP, degrees, power)
-        #turnBothMotors(BP, True, degrees, 50)
         
-        print("Final Total Degrees Left Motor has Turned: " + str(BP.get_motor_encoder(Left)))
-        print("Final Total Degrees Right Motor has Turned: " + str(BP.get_motor_encoder(Right)))
-        #BP.set_motor_position(Right, 180)
-        
-        #BP.set_motor_power(Right + Left, 50)
-        #time.sleep(6)
         #for i in range(5):
         #    moveDegrees(BP, degrees, power)
         #    syncLegs(BP)
