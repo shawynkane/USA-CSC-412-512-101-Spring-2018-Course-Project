@@ -84,7 +84,6 @@ def moveDegrees(BP, degrees, power):
 # 'power' is the percentage of power that the motor runs at. This function only takes a positive number for power. In other words it only moves forward, because it cannot detect obojects with the ultrasonic sensor while going backwards.
 # syncs legs at the beginning of the function
 def moveDegreesAlongPath(BP, degrees, power, routeColor):
-    syncLegs(BP)
     if power <= 0:
         BP.set_motor_power(Left + Right, 0)
         return 0
@@ -126,8 +125,10 @@ def moveDegreesAlongPath(BP, degrees, power, routeColor):
                     colors.append(checkColor)
                     if count >= 3:
                         if sum(colors) == 3:
+                            BP.set_motor_power(Left + Right, 0)
                             return 1
                         else:
+                            BP.set_motor_power(Left + Right, 0)
                             return -1
                     repeat = True
                     time.sleep(1)
@@ -310,7 +311,21 @@ def main():
         time.sleep(2)
         power = 30
         degrees = 360*15
-        print("moveDegreesAlongPath(BP, degrees, power, GREEN) = " + str(moveDegreesAlongPath(BP, degrees, power, GREEN)))
+        while(True):
+            if (moveDegreesAlongPath(BP, degrees, power, GREEN)):
+                userInput = input("Left or right?")
+                if (userInput == 'l'):
+                    #go left
+                    turnBothMotors(BP, False, 360*2, power)
+                elif (userInput =='r'):
+                    #go right
+                    turnBothMotors(BP, True, 360*2, power)
+                elif (userInput == 'exit'):
+                    raise Exception
+            else:
+                print("error")
+                #error code
+        #print("moveDegreesAlongPath(BP, degrees, power, GREEN) = " + str(moveDegreesAlongPath(BP, degrees, power, GREEN)))
         
         #for i in range(5):
         #    moveDegrees(BP, degrees, power)
